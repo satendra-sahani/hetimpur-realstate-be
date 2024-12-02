@@ -14,7 +14,7 @@ const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: ['http://localhost:3000', 'https://yourproductiondomain.com'], // Add allowed origins
+  origin: ['http://localhost:3000', 'https://clbhoomi.com'], // Add allowed origins
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true, // Allow cookies and other credentials in requests
   allowedHeaders: ['Content-Type', 'Authorization'], // Specify allowed headers
