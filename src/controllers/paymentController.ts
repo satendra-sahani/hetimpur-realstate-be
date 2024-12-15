@@ -2,6 +2,7 @@ import { RequestHandler } from "express";
 import Razorpay from "razorpay";
 import { razorpayConfig } from "../utils/razorpay.config";
 import User from "../models/User";
+import Land from "../models/Land";
 const razorpay = new Razorpay({
   key_id: razorpayConfig.key_id || '',
   key_secret: razorpayConfig.key_secret || ''
@@ -10,10 +11,10 @@ const razorpay = new Razorpay({
 // Generate payment link
 export const generatePaymentLink: RequestHandler = async (req, res, next): Promise<void> => {
   try {
-    let {  amount, currency, customerName, customerEmail } = req.body;  
+    let {  amount, currency, customerName, customerEmail,landId } = req.body;  
 
     // Validation check
-    if(req.user?.role=="user"){
+    if(req.user?.role=="user" || req.user?.role=="client"){
       const user=await User.findOne({_id:req.user.id})
       amount=10;
       currency="INR";
@@ -23,6 +24,13 @@ export const generatePaymentLink: RequestHandler = async (req, res, next): Promi
     if (!amount || !currency || !customerName || !customerEmail) {
       res.status(400).json({ message: "Missing required parameters" });
       return; // Ensuring it returns void
+    }
+
+    let callback_url
+    if(req.user?.role=="client"){
+       callback_url=`https://clbhoomi.com/payment/checking?landId=${landId}`;
+    }else{
+      callback_url=`https://clbhoomi.com/payment/checking/`;
     }
 
     const options = {
@@ -37,7 +45,7 @@ export const generatePaymentLink: RequestHandler = async (req, res, next): Promi
         email: true,
         sms: true, // Enable notifications to customer via SMS and Email
       },
-      callback_url: "http://localhost:5000/api/razorpay/callback", // Optional: Your backend callback URL
+      callback_url: callback_url, // Optional: Your backend callback URL
     };
 
 
@@ -86,8 +94,7 @@ export const generatePaymentLink: RequestHandler = async (req, res, next): Promi
 };
 export const callBackAfterPayment: RequestHandler = async (req, res, next) => {
     try {
-      const { razorpay_payment_id } = req.query;
-  
+      const { razorpay_payment_id,landId } = req.body;
       // Validate required parameters
       if (!razorpay_payment_id) {
          res.status(400).json({ message: "Missing required parameters: razorpay_payment_id" });
@@ -96,11 +103,23 @@ export const callBackAfterPayment: RequestHandler = async (req, res, next) => {
       // Fetch payment details from Razorpay
       const paymentDetails = await razorpay.payments.fetch(razorpay_payment_id as string);
   
-      console.log("Payment Details:", paymentDetails);
-  
       // Check the payment status
       if (paymentDetails.status === "captured") {
         // Payment is successful
+        if(req.user?.role=="client" && landId){
+          await Land.updateOne({client:req.user?.id,_id:landId},{
+            $set:{
+              paymentStatus:true
+            }
+          })
+        }else{
+          await User.updateOne({_id:req.user?.id},{
+            $set:{
+              approved:true
+            }
+          })
+        }
+        
          res.status(200).json({
           success: true,
           message: "Payment completed successfully",

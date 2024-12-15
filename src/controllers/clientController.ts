@@ -4,8 +4,8 @@ import Land from '../models/Land'; // Adjust the import path based on your folde
 // Create a new land posting
 export const createLand: RequestHandler = async (req, res, next) => {
   try {
-    const { client, image, address, status } = req.body;
-    const newLand = new Land({ client, image, address, status });
+    const { client, image, address, number, price, state, city } = req.body;
+    const newLand = new Land({ client, image, number, price, address, state, city });
     const savedLand = await newLand.save();
     res.status(201).json(savedLand); // Send the response and do not return anything
   } catch (error) {
@@ -16,8 +16,50 @@ export const createLand: RequestHandler = async (req, res, next) => {
 // Read all land postings
 export const getLands: RequestHandler = async (req, res, next) => {
   try {
-    const lands = await Land.find().populate('client', 'name email'); // Populate client details if needed
-    res.status(200).json(lands); // Send the response and do not return anything
+    // Pagination parameters
+    const page = parseInt(req.query.page as string, 10) || 1; // Default to page 1
+    const limit = parseInt(req.query.limit as string, 10) || 10; // Default to 10 items per page
+
+    // Search parameter
+    const search = req.query.search as string;
+
+    // Construct the filter object
+    const filter: any = { client: req.user?.id }; // Ensure lands are specific to the logged-in user
+    if (search) {
+      // Modify this based on the searchable fields in your Land model
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } }, // Case-insensitive search
+        { description: { $regex: search, $options: 'i' } },
+        { state: { $regex: search, $options: 'i' } },
+        { city: { $regex: search, $options: 'i' } },
+      ];
+    }
+    if (req.user?.role == "client") {
+      filter.client = req.user.id;
+    } else if (req.user?.role == "user") {
+      filter.status = "available"
+    }
+
+    // Calculate pagination parameters
+    const skip = (page - 1) * limit;
+
+    // Fetch lands with pagination and populate client details
+    const lands = await Land.find(filter)
+      .populate('client', 'name') // Populate client details
+      .skip(skip)
+      .limit(limit);
+
+    // Total count of lands for the given filter
+    const totalLands = await Land.countDocuments(filter);
+
+    // Send the paginated response
+    res.status(200).json({
+      total: totalLands,
+      page,
+      limit,
+      totalPages: Math.ceil(totalLands / limit),
+      data: lands,
+    });
   } catch (error) {
     next(error); // Pass the error to the next middleware
   }
