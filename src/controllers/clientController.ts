@@ -37,6 +37,7 @@ export const getLands: RequestHandler = async (req, res, next) => {
     if (req.user?.role == "client") {
       filter.client = req.user.id;
     } else if (req.user?.role == "user") {
+      delete filter.client;
       filter.paymentStatus = true
     }
 
