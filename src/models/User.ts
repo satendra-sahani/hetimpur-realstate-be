@@ -8,7 +8,7 @@ const userSchema = new Schema({
   address: { type: String },
   role: { type: String, enum: ['admin', 'client', 'user'], default: 'user' },
   linkId: { type: String, default: "" },
-  approved: { type: Boolean, default: true }, // For payment approval by admin
+  approved: { type: Boolean, default: false }, // For payment approval by admin
 }, { timestamps: true });
 
 export default model('User', userSchema);

@@ -9,7 +9,7 @@ dotenv.config();
 // Register function
 export const register: RequestHandler = async (req, res, next) => {
   try {
-    const { name, email, password, contact, approved } = req.body;
+    const { name, email, password, contact } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -27,7 +27,6 @@ export const register: RequestHandler = async (req, res, next) => {
       email,
       password: hashedPassword,
       contact,
-      approved,
     });
 
     // Respond with success message
