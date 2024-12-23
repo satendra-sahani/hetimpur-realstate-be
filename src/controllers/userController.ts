@@ -9,10 +9,10 @@ dotenv.config();
 // Register function
 export const register: RequestHandler = async (req, res, next) => {
   try {
-    const { name, email, password, contact,role } = req.body;
+    const { name, password, contact,role } = req.body;
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ contact });
     if (existingUser) {
       res.status(400).json({ message: 'User already exists' });
       return; // Ensure the function exits after sending a response
@@ -24,9 +24,8 @@ export const register: RequestHandler = async (req, res, next) => {
     // Create new user
     const user = await User.create({
       name,
-      email,
-      password: hashedPassword,
       contact,
+      password: hashedPassword,
       role
     });
 
@@ -40,10 +39,10 @@ export const register: RequestHandler = async (req, res, next) => {
 // Login function
 export const login: RequestHandler = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { contact, password } = req.body;
 
     // Check if the user exists
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ contact });
     if (!user) {
       res.status(401).json({ message: 'User is not registered' });
       return;
@@ -52,7 +51,7 @@ export const login: RequestHandler = async (req, res, next) => {
     // Compare password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      res.status(401).json({ message: 'Invalid email or password' });
+      res.status(401).json({ message: 'Invalid number or password' });
       return;
     }
 
@@ -63,7 +62,7 @@ export const login: RequestHandler = async (req, res, next) => {
     res.status(200).json({
       message: 'Login successful',
       token,
-      user: { id: user._id, name: user.name, email: user.email, role: user.role },
+      user: { id: user._id, name: user.name, contact: user.contact, role: user.role },
     });
   } catch (error) {
     next(error);

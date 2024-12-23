@@ -11,7 +11,7 @@ const razorpay = new Razorpay({
 // Generate payment link
 export const generatePaymentLink: RequestHandler = async (req, res, next): Promise<void> => {
   try {
-    let {  amount, currency, customerName, customerEmail,landId } = req.body;  
+    let {  amount, currency, customerName,landId } = req.body;  
 
     // Validation check
     if(req.user?.role=="user" || req.user?.role=="client"){
@@ -19,18 +19,17 @@ export const generatePaymentLink: RequestHandler = async (req, res, next): Promi
       amount=10;
       currency="INR";
       customerName=user?.name;
-      customerEmail=user?.email;
     }
-    if (!amount || !currency || !customerName || !customerEmail) {
+    if (!amount || !currency || !customerName ) {
       res.status(400).json({ message: "Missing required parameters" });
       return; // Ensuring it returns void
     }
 
     let callback_url
     if(req.user?.role=="client"){
-       callback_url=`https://clbhoomi.com/payment/checking?landId=${landId}`;
+       callback_url=`http://localhost:3000/payment/checking?landId=${landId}`;
     }else{
-      callback_url=`https://clbhoomi.com/payment/checking/`;
+      callback_url=`http://localhost:3000/payment/checking/`;
     }
 
     const options = {
@@ -39,10 +38,10 @@ export const generatePaymentLink: RequestHandler = async (req, res, next): Promi
       description: "Payment for the order",
       customer: {
         name: customerName,
-        email: customerEmail,
+        // email: customerEmail,
       },
       notify: {
-        email: true,
+        // email: true,
         sms: true, // Enable notifications to customer via SMS and Email
       },
       callback_url: callback_url, // Optional: Your backend callback URL
@@ -56,7 +55,7 @@ export const generatePaymentLink: RequestHandler = async (req, res, next): Promi
       description: options.description,
       customer: {
         name: options.customer.name,
-        email: options.customer.email,
+        // email: options.customer.email,
       },
       notify: options.notify,
       callback_url: options.callback_url,
