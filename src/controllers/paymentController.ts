@@ -27,9 +27,9 @@ export const generatePaymentLink: RequestHandler = async (req, res, next): Promi
 
     let callback_url
     if(req.user?.role=="client"){
-       callback_url=`http://localhost:3000/payment/checking?landId=${landId}`;
+       callback_url=`https://clbhoomi.com/payment/checking?landId=${landId}`;
     }else{
-      callback_url=`http://localhost:3000/payment/checking/`;
+      callback_url=`https://clbhoomi.com/payment/checking/`;
     }
 
     const options = {
