@@ -31,6 +31,9 @@ app.use('/uploads', express.static('uploads'));
 
 // API Routes
 app.use('/api', bypassRoutes);
+app.get('/satendra/testing', (_,res)=>{
+  res.send("Successfully connected")
+});
 app.use("/api/auth", authRoutes);
 app.use('/api/admin', authMiddleware(['admin']), adminRoutes);
 app.use('/api/user', authMiddleware(['user']), userRoutes);
