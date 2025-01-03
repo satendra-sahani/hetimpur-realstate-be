@@ -45,7 +45,7 @@ mongoose
   .then(() => {
     // Start the server once connected to the database
     app.listen(process.env.PORT, () => {
-      console.log(`Server running on ports ${process.env.PORT}`);
+      console.log(`Server running on ports ${process.env.PORT}, I am Satendra`);
     });
   })
   .catch((err) => console.log('Error connecting to MongoDB:', err.message));
